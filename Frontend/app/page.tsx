@@ -1,10 +1,31 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const options = {method: 'GET', headers: {accept: 'application/json'}};
+  const [state, setState] = useState([]);
+  const fetchTrending = async () => {
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/trending/movie/day?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
+      );
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const data = await response.json();
+      setState(data.results); // Update the state with the fetched data
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+ 
+useEffect(() => {
+  fetchTrending(); //calling the fetchTrending function only during the initial rendering of the app.
+}, []);
 
   
   return (
@@ -52,26 +73,32 @@ export default function Home() {
 
       {/* Featured Section */}
       <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-center">Featured This Week</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transition transform hover:scale-105">
-                <Image src={`/placeholder.svg?text=Movie${i}`} alt={`Featured Movie ${i}`} width={300} height={450} className="w-full h-64 object-cover" />
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold mb-2">Movie Title {i}</h3>
-                  <div className="flex justify-between items-center">
-                    <span className="text-teal-500">★ 4.5</span>
-                    <Button variant="outline" className="text-teal-500 border-teal-500 hover:bg-teal-500 hover:text-white">
-                      Rate
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
+  <div className="container mx-auto px-4">
+    <h2 className="text-3xl font-bold mb-8 text-center">Featured This Week</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {state.map((movie) => (
+        <div key={movie.id} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transition transform hover:scale-105">
+          <Image
+            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+            alt={movie.title}
+            width={720}
+            height={1080}
+            className="w-full h-64 object-cover"
+          />
+          <div className="p-4">
+            <h3 className="text-xl font-semibold mb-2">{movie.title}</h3>
+            <div className="flex justify-between items-center">
+              <span className="text-teal-500">★ {movie.vote_average}</span>
+              <Button variant="outline" className="text-teal-500 border-teal-500 hover:bg-teal-500 hover:text-white">
+                Rate
+              </Button>
+            </div>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Why MovieRec Section */}
       <section className="py-16 bg-gray-800">
