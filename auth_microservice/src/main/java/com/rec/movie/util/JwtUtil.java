@@ -1,21 +1,27 @@
 package com.rec.movie.util;
 
+import com.rec.movie.service.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.security.SignatureException;
 import java.util.Date;
 
 @Component
-@Log4j2
 public class JwtUtil {
     @Value("${fullstackbook.app.jwtSecret}")
     private String jwtSecret;
 
     @Value("${fullstackbook.app.jwtExpirationMs}")
     private int jwtExpirationMs;
+
+    private static final Logger log = LogManager.getLogger(JwtUtil.class);
 
     public String generateJwtToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -32,8 +38,6 @@ public class JwtUtil {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
             return true;
-        } catch (SignatureException e) {
-            log.error("Invalid JWT signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
             log.error("Invalid JWT token: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
